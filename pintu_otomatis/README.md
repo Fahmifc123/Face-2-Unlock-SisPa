@@ -1,10 +1,4 @@
-Install the dependencies and devDependencies and start the server.
-
-```sh
-$ cd dillinger
-$ npm install -d
-$ node app
-```
+# PINTU OTOMATIS BERBASIS FACE RECOGNITION
 
 Pintu otomatis adalah sebuah program Artificial Intelligence
 memakai bahasa python. Tujuan dibuatnya pintu otomatis ini
@@ -29,4 +23,25 @@ Cara Kerja dari pintu otomatis adalah sebagai berikut:
 - Jika wajah tidak berhasil terdeteksi maka pintu tidak akan terbuka 
 
 # Langkah-Langkah Menjalankan
-- 
+Untuk menjalankan pinti otomatis hal yang harus dilakukan adalah:
+- Cara memulai pertama kali. 
+```sh
+ Running python main.py
+```
+- Cara untuk membuat dataset baru jika diinginkan.
+```sh
+ Klik button take images
+```
+-Untuk melaukan Training pada data set 
+```sh
+ Klik button training data 
+```
+- Untuk mencoba masuk ke dalam ruangan dengan face recognition 
+```sh
+Klik button buka pintu 
+Lalu memperlihatkan wajahnya pada camera 
+```
+- Jika ingin menutup pintu kembali 
+```sh
+Klik button tutup pintu  
+```
