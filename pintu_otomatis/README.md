@@ -32,7 +32,7 @@ Untuk menjalankan pinti otomatis hal yang harus dilakukan adalah:
 ```sh
  Klik button take images
 ```
--Untuk melaukan Training pada data set 
+- Untuk melaukan Training pada data set 
 ```sh
  Klik button training data 
 ```
