@@ -12,6 +12,8 @@ import os
 import sys
 import cv2
 import csv
+import easygui
+
 
 import smtplib
 import mimetypes
@@ -19,16 +21,13 @@ import datetime
 import numpy as np
 import pandas as pd
 import time
-from do_something import *
-import multiprocessing as jalan
+
 from threading import Thread
+import multiprocessing as jalan
 
 from skimage import io
 from email import encoders
 from PIL import Image,ImageTk
-from email.mime.text import MIMEText
-from email.mime.base import MIMEBase
-from email.message import EmailMessage
 from tkinter.filedialog import askopenfilename
 from email.mime.multipart import MIMEMultipart
 
@@ -87,6 +86,7 @@ class mainScreen:
         font12 = "-family {SF Pro Display} -size 12 -weight bold "  \
             "-slant roman -underline 0 -overstrike 0"
 
+#Take image
         def takeImage():
         	detector_face = dlib.get_frontal_face_detector()
         	cap_face = cv2.VideoCapture(0)
@@ -186,9 +186,7 @@ class mainScreen:
         	cap_face.release()
         	cv2.destroyAllWindows()
 
-
-
-
+#training data image
         def trainImage():
             path_images_from_camera = "data/create/"
             detector = dlib.get_frontal_face_detector()
@@ -273,8 +271,6 @@ class mainScreen:
                 print("Save all the features of faces registered into: data/features_all.csv")
     
     
-    
-
         def getImagesAndLabels(path):
             imagePaths = [os.path.join(path, f) for f in os.listdir(path)]
             faceSamples = []
@@ -289,7 +285,8 @@ class mainScreen:
                     IDS.append(Id)
             return faceSamples, IDS
 
-        def autoAttendance():
+#buka pintu recognition
+        def bukaPintu():
             facerec = dlib.face_recognition_model_v1("data/data_dlib/dlib_face_recognition_resnet_model_v1.dat")
 
 
@@ -360,7 +357,7 @@ class mainScreen:
                         if len(faces) != 0:
                             # features_cap_arr
                             # capture dan save into features_cap_arr
-                
+                            
                             features_cap_arr = []
                             for i in range(len(faces)):
                                 shape = predictor(img_rd, faces[i])
@@ -369,11 +366,11 @@ class mainScreen:
 
                             # convert to the database csv
                             for k in range(len(faces)):
-                                print("##### camera person", k+1, "#####")
+                                print("PINTU TERBUKA", k+1, "#####")
                                 # 
                                 # jika ada yang unknown
                                 # Set the default names of faces with "unknown"
-                                name_namelist.append("unknown")
+                                name_namelist.append("PINTU TIDAK TERBUKA")
 
                                 # posisi di capture
                                 pos_namelist.append(tuple([faces[k].left(), int(faces[k].bottom() + (faces[k].bottom() - faces[k].top())/4)]))
@@ -393,7 +390,7 @@ class mainScreen:
                                     else:
                           
                                         e_distance_list.append(999999999)
-                            
+                                
                                 # temukan minimal 1 person
                                 similar_person_num = e_distance_list.index(min(e_distance_list))
                                 print("Minimum e distance with person", int(similar_person_num)+1)
@@ -402,10 +399,12 @@ class mainScreen:
                        
                                     # person1, 2, 3 .....
                         
-                                    name_namelist[k] = "Person "+str(int(similar_person_num)+1)
+                                    name_namelist[k] = "PINTU TERBUKA, PERSON "+str(int(similar_person_num)+1)
+                                    easygui.msgbox("Pintu Terbuka", title="Buka Pintu")
                                     print("May be person "+str(int(similar_person_num)+1))
+
                                 else:
-                                    print("Unknown person")
+                                    print("PINTU TIDAK TERBUKA")
 
                                 # ini sudah membaca person
                     
@@ -414,6 +413,7 @@ class mainScreen:
                         
                                     cv2.rectangle(img_rd, tuple([d.left(), d.top()]), tuple([d.right(), d.bottom()]), (0, 255, 255), 2)
                                 print('\n')
+
 
 
                             # menulis nama under rectangle
@@ -446,356 +446,54 @@ class mainScreen:
             else:
                 print('##### Warning #####', '\n')
                 print("'features_all.py' not found!")
-                print("Please run 'get_faces_from_camera.py' and 'features_extraction_to_csv.py' before 'face_reco_from_camera.py'", '\n')
-                print('##### Warning #####')
 
 
-
-        def manualAttendance():
-            facerec = dlib.face_recognition_model_v1("data/data_dlib/dlib_face_recognition_resnet_model_v1.dat")
-
-
-            # fungsi ini sebagai between two 128D features
-            def return_euclidean_distance(feature_1, feature_2):
-                feature_1 = np.array(feature_1)
-                feature_2 = np.array(feature_2)
-                dist = np.sqrt(np.sum(np.square(feature_1 - feature_2)))
-                return dist
-
-            # fungsi start pada thread
-            def start(self):
-                Thread(target=self.update, args=()).start()
-                return self
+#tutup pintu
+        def tutupPintu():
+            easygui.msgbox("Pintu Ditutup", title="Tutup Pintu")
 
 
-            # melakukan cek csv
-            if os.path.exists("data/features_all.csv"):
-                path_features_known_csv = "data/features_all.csv"
-                csv_rd = pd.read_csv(path_features_known_csv, header=None)
-
-                # setelah itu 
-                # array akan di save
-                features_known_arr = []
-
-                # melakukan print known faces
-    
-                for i in range(csv_rd.shape[0]):
-                    features_someone_arr = []
-                    for j in range(0, len(csv_rd.iloc[i])):
-                        features_someone_arr.append(csv_rd.iloc[i][j])
-                    features_known_arr.append(features_someone_arr)
-                print("Faces in Database：", len(features_known_arr))
-
-                # Dlib detejsu
-                # detector dan predictor yang digunakan
-                detector = dlib.get_frontal_face_detector()
-    
-                predictor = dlib.shape_predictor('data/data_dlib/shape_predictor_68_face_landmarks.dat')
-
-                # munculkan webcam
-                cap = cv2.VideoCapture(0)
-
-                # jika webcam terbuka 
-    
-                while cap.isOpened():
-
-                    #sebagai flag sebelumnya untuk read wajah
-                    flag, img_rd = cap.read()
         
-                    faces = detector(img_rd, 0)
-
-                    # font untuk di tulis 
-                    font = cv2.FONT_ITALIC
-
-                    # list to save the posisi dan nama
-                    pos_namelist = []
-                    name_namelist = []
-
-                    kk = cv2.waitKey(1)
-
-                    # untuk menunggu 
-                    # tekan 'q' untuk exit
-                    if kk == ord('q'):
-                        break
-                    else:
-                        # jika wajah terdeteksi
-                        if len(faces) != 0:
-                            # features_cap_arr
-                            # capture dan save into features_cap_arr
-                
-                            features_cap_arr = []
-                            for i in range(len(faces)):
-                                shape = predictor(img_rd, faces[i])
-                                features_cap_arr.append(facerec.compute_face_descriptor(img_rd, shape))
-
-
-                            # convert to the database csv
-                            for k in range(len(faces)):
-                                print("##### camera person", k+1, "#####")
-                                # 
-                                # jika ada yang unknown
-                                # Set the default names of faces with "unknown"
-                                name_namelist.append("unknown")
-
-                                # posisi di capture
-                                pos_namelist.append(tuple([faces[k].left(), int(faces[k].bottom() + (faces[k].bottom() - faces[k].top())/4)]))
-
-                                # face sudah di database
-                    
-                                e_distance_list = []
-                    
-                                for i in range(len(features_known_arr)):
-                
-                                    if str(features_known_arr[i][0]) != '0.0':
-                                        print("with person", str(i + 1), "the e distance: ", end='')
-                                        e_distance_tmp = return_euclidean_distance(features_cap_arr[k], features_known_arr[i])
-                                        print(e_distance_tmp)
-                                        e_distance_list.append(e_distance_tmp)
-                        
-                                    else:
-                          
-                                        e_distance_list.append(999999999)
-                            
-                                # temukan minimal 1 person
-                                similar_person_num = e_distance_list.index(min(e_distance_list))
-                                print("Minimum e distance with person", int(similar_person_num)+1)
-
-                                if min(e_distance_list) < 0.4:
-                       
-                                    # person1, 2, 3 .....
-                        
-                                    name_namelist[k] = "Person "+str(int(similar_person_num)+1)
-                                    print("May be person "+str(int(similar_person_num)+1))
-                                else:
-                                    print("Unknown person")
-
-                                # ini sudah membaca person
-                    
-                 
-                                for kk, d in enumerate(faces):
-                        
-                                    cv2.rectangle(img_rd, tuple([d.left(), d.top()]), tuple([d.right(), d.bottom()]), (0, 255, 255), 2)
-                                print('\n')
-
-
-                            # menulis nama under rectangle
-                            for i in range(len(faces)):
-                                cv2.putText(img_rd, name_namelist[i], pos_namelist[i], font, 0.8, (0, 255, 255), 1, cv2.LINE_AA)
-
-                    print("Faces in camera now:", name_namelist, "\n")
-
-                    cv2.putText(img_rd, "Press 'q': Quit", (20, 450), font, 0.8, (84, 255, 159), 1, cv2.LINE_AA)
-        
-                    cv2.putText(img_rd, "Face Recognition", (20, 40), font, 1, (0, 0, 0), 1, cv2.LINE_AA)
-        
-                    cv2.putText(img_rd, "Faces: " + str(len(faces)), (20, 100), font, 1, (0, 0, 255), 1, cv2.LINE_AA)
-
-                    cv2.imshow("camera", img_rd)
-
-                cap.release()
-    
-                cv2.destroyAllWindows()
-
-
-            #fungsi pool dari multiprocessing
-    
-            if __name__ == "__main__":
-                pool = jalan.Pool(jalan.cpu_count()- 1)
-                cap.release()
-                cv2.destroyAllWindows()
-
-
-            else:
-                print('##### Warning #####', '\n')
-                print("'features_all.py' not found!")
-                print("Please run 'get_faces_from_camera.py' and 'features_extraction_to_csv.py' before 'face_reco_from_camera.py'", '\n')
-                print('##### Warning #####')
-
-        def adminPanel():
-            adminScreen = tk.Tk()
-            adminScreen.geometry("730x389+225+149")
-            adminScreen.resizable(1, 1)
-            adminScreen.title("Admin Panel")
-            adminScreen.iconbitmap("mainIcon.ico")
-            adminScreen.configure(background="#1B1B1B")
-            adminScreen.focus_force()
-
-            def clearUsername():
-                self.adminUsernameEntry.delete(first=0, last=30)
-
-            def clearPassword():
-                self.adminPasswordEntry.delete(first=0, last=30)
-
-            def administratorLogin():
-                UserName = self.adminUsernameEntry.get()
-                Password = self.adminPasswordEntry.get()
-                if UserName == os.environ.get("panelUsername"):
-                    if Password == os.environ.get("panelPassword"):
-                        self.loginMessage.configure(background="#008000")
-                        self.loginMessage.configure(foreground="#FFFFFF")
-                        self.loginMessage.configure(text='''Login Success!''')
-                        studentDetails = tk.Tk()
-                        studentDetails.title("Student Details")
-                        studentDetails.iconbitmap("mainIcon.ico")
-                        studentDetails.configure(background="#1B1B1B")
-                        studentDetails.focus_force()
-                        location = 'D:/FOLDER KHUSUS NGAMPUS/SEMESTER 6/SISTEM TERSEBAR/UTS/UTS/FIX/Multiprocessing/Smart Absensi/Smart Absensi/StudentDetails.csv'
-                        with open (location, newline="") as file:
-                            reader = csv.reader(file)
-                            r = 0
-                            for col in reader:
-                                c = 0
-                                for row in col:
-                                    self.studentLabel = tk.Label(studentDetails)
-                                    self.studentLabel.configure(background="#008000")
-                                    self.studentLabel.configure(foreground="#000000")
-                                    self.studentLabel.configure(font="-family {SF Pro Display} -size 18 -weight bold")
-                                    self.studentLabel.configure(width=6, height=1)
-                                    self.studentLabel.configure(text=row)
-                                    self.studentLabel.grid(row = r, column = c)
-                                    c += 1
-                                r += 1
-                        adminScreen.iconify()
-                        studentDetails.mainloop()
-                    elif Password == "":
-                        self.loginMessage.configure(background="#800000")
-                        self.loginMessage.configure(foreground="#FFFFFF")
-                        self.loginMessage.configure(text='''Please enter password!''')
-                    else:
-                        self.loginMessage.configure(background="#800000")
-                        self.loginMessage.configure(foreground="#FFFFFF")
-                        self.loginMessage.configure(text='''Incorrect Password!''')
-                        clearPassword()
-                elif UserName == "":
-                    self.loginMessage.configure(background="#800000")
-                    self.loginMessage.configure(foreground="#FFFFFF")
-                    self.loginMessage.configure(text='''Please enter username!''')
-                else:
-                    self.loginMessage.configure(background="#800000")
-                    self.loginMessage.configure(foreground="#FFFFFF")
-                    self.loginMessage.configure(text='''Incorrect Username!''')
-                    clearUsername()
-
-            self.topMessage = tk.Message(adminScreen)
-            self.topMessage.place(relx=0.0, rely=0.051, relheight=0.175, relwidth=1.041)
-            self.topMessage.configure(background="#2E2E2E")
-            self.topMessage.configure(font="-family {SF Pro Display} -size 36 -weight bold")
-            self.topMessage.configure(foreground="#FFFFFF")
-            self.topMessage.configure(highlightbackground="#d9d9d9")
-            self.topMessage.configure(highlightcolor="black")
-            self.topMessage.configure(text='''Admin Panel''')
-            self.topMessage.configure(width=760)
-
-            self.adminUsername = tk.Label(adminScreen)
-            self.adminUsername.place(relx=0.096, rely=0.36, height=29, width=155)
-            self.adminUsername.configure(background="#1B1B1B")
-            self.adminUsername.configure(disabledforeground="#a3a3a3")
-            self.adminUsername.configure(font=font10)
-            self.adminUsername.configure(foreground="#FFFFFF")
-            self.adminUsername.configure(text='''Enter Username:''')
-
-            self.adminPassword = tk.Label(adminScreen)
-            self.adminPassword.place(relx=0.096, rely=0.54, height=29, width=152)
-            self.adminPassword.configure(background="#1B1B1B")
-            self.adminPassword.configure(disabledforeground="#a3a3a3")
-            self.adminPassword.configure(font=font10)
-            self.adminPassword.configure(foreground="#FFFFFF")
-            self.adminPassword.configure(text='''Enter Password:''')
-
-            self.adminUsernameEntry = tk.Entry(adminScreen)
-            self.adminUsernameEntry.place(relx=0.384, rely=0.36, height=27, relwidth=0.362)
-            self.adminUsernameEntry.configure(background="#D9D9D9")
-            self.adminUsernameEntry.configure(disabledforeground="#a3a3a3")
-            self.adminUsernameEntry.configure(font=font10)
-            self.adminUsernameEntry.configure(foreground="#000000")
-            self.adminUsernameEntry.configure(insertbackground="black")
-
-            self.adminPasswordEntry = tk.Entry(adminScreen)
-            self.adminPasswordEntry.place(relx=0.384, rely=0.54, height=27, relwidth=0.362)
-            self.adminPasswordEntry.configure(background="#D9D9D9")
-            self.adminPasswordEntry.configure(disabledforeground="#a3a3a3")
-            self.adminPasswordEntry.configure(font=font10)
-            self.adminPasswordEntry.configure(foreground="#000000")
-            self.adminPasswordEntry.configure(insertbackground="black")
-            self.adminPasswordEntry.configure(show="*")
-
-            self.clearAdminUsername = tk.Button(adminScreen)
-            self.clearAdminUsername.place(relx=0.803, rely=0.347, height=38, width=66)
-            self.clearAdminUsername.configure(activebackground="#ececec")
-            self.clearAdminUsername.configure(activeforeground="#000000")
-            self.clearAdminUsername.configure(background="#2E2E2E")
-            self.clearAdminUsername.configure(disabledforeground="#a3a3a3")
-            self.clearAdminUsername.configure(font=font10)
-            self.clearAdminUsername.configure(foreground="#FFFFFF")
-            self.clearAdminUsername.configure(highlightbackground="#d9d9d9")
-            self.clearAdminUsername.configure(highlightcolor="black")
-            self.clearAdminUsername.configure(pady="0")
-            self.clearAdminUsername.configure(text='''Clear''')
-            self.clearAdminUsername.configure(command=clearUsername)
-
-            self.clearAdminPassword = tk.Button(adminScreen)
-            self.clearAdminPassword.place(relx=0.803, rely=0.527, height=38, width=66)
-            self.clearAdminPassword.configure(activebackground="#ececec")
-            self.clearAdminPassword.configure(activeforeground="#000000")
-            self.clearAdminPassword.configure(background="#2E2E2E")
-            self.clearAdminPassword.configure(disabledforeground="#a3a3a3")
-            self.clearAdminPassword.configure(font=font10)
-            self.clearAdminPassword.configure(foreground="#FFFFFF")
-            self.clearAdminPassword.configure(highlightbackground="#d9d9d9")
-            self.clearAdminPassword.configure(highlightcolor="black")
-            self.clearAdminPassword.configure(pady="0")
-            self.clearAdminPassword.configure(text='''Clear''')
-            self.clearAdminPassword.configure(command=clearPassword)
-
-            self.adminLoginBtn = tk.Button(adminScreen)
-            self.adminLoginBtn.place(relx=0.452, rely=0.848, height=38, width=80)
-            self.adminLoginBtn.configure(activebackground="#ececec")
-            self.adminLoginBtn.configure(activeforeground="#000000")
-            self.adminLoginBtn.configure(background="#2E2E2E")
-            self.adminLoginBtn.configure(disabledforeground="#a3a3a3")
-            self.adminLoginBtn.configure(font=font10)
-            self.adminLoginBtn.configure(foreground="#FFFFFF")
-            self.adminLoginBtn.configure(highlightbackground="#d9d9d9")
-            self.adminLoginBtn.configure(highlightcolor="black")
-            self.adminLoginBtn.configure(pady="0")
-            self.adminLoginBtn.configure(text='''Login''')
-            self.adminLoginBtn.configure(command=administratorLogin)
-
-            self.loginMessage = tk.Message(adminScreen)
-            self.loginMessage.place(relx=0.096, rely=0.694, relheight=0.111, relwidth=0.795)
-            self.loginMessage.configure(background="#1B1B1B")
-            self.loginMessage.configure(font=font10)
-            self.loginMessage.configure(foreground="#1B1B1B")
-            self.loginMessage.configure(highlightbackground="#d9d9d9")
-            self.loginMessage.configure(highlightcolor="black")
-            self.loginMessage.configure(text='''Login Success''')
-            self.loginMessage.configure(width=580)
-
-            adminScreen.mainloop()
-
         top.geometry("1367x696+-9+0")
         top.minsize(120, 1)
         top.maxsize(1370, 749)
         top.resizable(0, 0)
+        top.iconbitmap("icon.ico")
         top.focus_force()
-        top.title("SMART ABSENSI - FAHMI")
+        top.title("PINTU OTOMATIS - FACE 2 UNLOCK")
         top.configure(background="#1B1B1B")
         top.configure(highlightbackground="#d9d9d9")
         top.configure(highlightcolor="black")
 
         self.Title = tk.Message(top)
         self.Title.place(relx=-0.007, rely=0.042, relheight=0.134, relwidth=1.005)
-        self.Title.configure(background="#2E2E2E")
+        self.Title.configure(background="#00008B")
         self.Title.configure(font="-family {SF Pro Display} -size 36 -weight bold")
         self.Title.configure(foreground="#FFFFFF")
         self.Title.configure(highlightbackground="#D9D9D9")
         self.Title.configure(highlightcolor="black")
-        self.Title.configure(text='''Smart Absensi Absen Dengan Face Recognition''')
+        self.Title.configure(text='''PINTU OTOMATIS - FACE 2 UNLOCK''')
         self.Title.configure(width=1374)
 
+        self.Details = tk.Message(top)
+        self.Details.place(relx=0.070, rely=0.200, relheight=0.350, relwidth=0.600)
+        self.Details.configure(background="#FF4D00")
+        self.Details.configure(font=font12)
+        self.Details.configure(foreground="#ffffff")
+        self.Details.configure(highlightbackground="#d9d9d9")
+        self.Details.configure(highlightcolor="black")
+        self.Details.configure(text='''PINTU OTOMATIS BERBASIS FACE RECOGNITION
+
+Demo : Keadaan pintu tertutup, seseorang ingin masuk maka kita klik button BUKA PINTU.
+lalu seseorang memperlihatkan wajar nya ke kamera, secara otomatis jika 
+wajah terdeteksi maka pintu terbuka dengan hal ini ada notifikasi PINTU TERBUKA !
+Jika wajah tidak terdeteksi maka tidak ada notifikasi pintu terbuka dan akan ada 
+notifikasi pintu tidak terbuka. Jika kita ingin menutup pintu maka klik button TUTUP PINTU.''') 
+        self.Details.configure(width=1000)
+
         self.Notification = tk.Label(top)
-        self.Notification.configure(text="COBA PINTU OTOMATIS")
-        self.Notification.configure(background="#008000")
+        self.Notification.configure(text="DEMO PROGRAM PINTU OTOMATIS DENGAN FACE RECOGNITION")
+        self.Notification.configure(background="#FF4D00")
         self.Notification.configure(foreground="#FFFFFF")
         self.Notification.configure(width=64, height=2)
         self.Notification.configure(font="-family {SF Pro Display} -size 16 -weight bold")
@@ -826,7 +524,7 @@ class mainScreen:
         self.trainStudent.configure(highlightbackground="#d9d9d9")
         self.trainStudent.configure(highlightcolor="black")
         self.trainStudent.configure(pady="0")
-        self.trainStudent.configure(text='''Train Student''')
+        self.trainStudent.configure(text='''Training Data''')
         self.trainStudent.configure(command=trainImage)
 
         self.automaticAttendance = tk.Button(top)
@@ -840,8 +538,8 @@ class mainScreen:
         self.automaticAttendance.configure(highlightbackground="#d9d9d9")
         self.automaticAttendance.configure(highlightcolor="black")
         self.automaticAttendance.configure(pady="0")
-        self.automaticAttendance.configure(text='''Automatic Attendance''')
-        self.automaticAttendance.configure(command=autoAttendance)
+        self.automaticAttendance.configure(text='''Buka Pintu''')
+        self.automaticAttendance.configure(command=bukaPintu)
 
         self.manualAttendance = tk.Button(top)
         self.manualAttendance.place(relx=0.541, rely=0.818, height=38, width=194)
@@ -854,22 +552,8 @@ class mainScreen:
         self.manualAttendance.configure(highlightbackground="#d9d9d9")
         self.manualAttendance.configure(highlightcolor="black")
         self.manualAttendance.configure(pady="0")
-        self.manualAttendance.configure(text='''Manual Attendance''')
-        self.manualAttendance.configure(command=manualAttendance)
-
-        self.adminPanel = tk.Button(top)
-        self.adminPanel.place(relx=0.797, rely=0.345, height=38, width=131)
-        self.adminPanel.configure(activebackground="#ececec")
-        self.adminPanel.configure(activeforeground="#000000")
-        self.adminPanel.configure(background="#2E2E2E")
-        self.adminPanel.configure(disabledforeground="#a3a3a3")
-        self.adminPanel.configure(font=font11)
-        self.adminPanel.configure(foreground="#FFFFFF")
-        self.adminPanel.configure(highlightbackground="#d9d9d9")
-        self.adminPanel.configure(highlightcolor="black")
-        self.adminPanel.configure(pady="0")
-        self.adminPanel.configure(text='''Admin Panel''')
-        self.adminPanel.configure(command=adminPanel)
+        self.manualAttendance.configure(text='''Tutup Pintu''')
+        self.manualAttendance.configure(command=tutupPintu)
 
         self.authorDetails = tk.Message(top)
         self.authorDetails.place(relx=0.753, rely=0.46, relheight=0.407, relwidth=0.19)
@@ -878,20 +562,18 @@ class mainScreen:
         self.authorDetails.configure(foreground="#ffffff")
         self.authorDetails.configure(highlightbackground="#d9d9d9")
         self.authorDetails.configure(highlightcolor="black")
-        self.authorDetails.configure(justify='center')
-        self.authorDetails.configure(text='''This software is designed by Rushil Choksi & Modification by FAHMI''')
+        self.authorDetails.configure(text='''FACE 2 UNLOCK -            
+TUGAS BESAR SISTEM PAKAR
+
+1. Muhammad Fahmi - 1174021
+2. M Dzihan Al-Banna - 1174095
+3. M Tomy Nur Maulidy - 1174031
+4. Choirul Anam - 1174004
+5. Damara Benedikta S - 1174012
+6. Dezha Aidil Martha - 1174025''') 
         self.authorDetails.configure(width=260)
 
 
 # Disini mulai reload module dari do_something
 if __name__ == '__main__':
     vp_start_gui()
-    size = 10000000   
-    n_exec = 10
-    for i in range(0, n_exec):
-        out_list = list()
-        do_something(size, out_list)
-    
-    print ("List processing complete.")
-    end_time = time.time()
-    print("serial time=", end_time - start_time)
